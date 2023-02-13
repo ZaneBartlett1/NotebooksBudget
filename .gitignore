@@ -1,0 +1,6 @@
+venv
+.ipynb_checkpoints/
+budget.db
+__pycache__
+Real_one.ipynb
+.DS_Store

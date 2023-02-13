@@ -1,0 +1,55 @@
+60/25/15_rule :
+  sixty :
+    percentage : 60
+    required : False
+    type: hard_limit
+    tags : 
+      [
+      "Car Insurance",
+      "Eating for sustenance",
+      "Eating for pleasure",
+      "Internal Transfer",
+      "Internet",
+      "Laundry",
+      "Phone",
+      "Rent",
+      "Job Payment"
+      ]
+  twenty_free :
+    percentage : 20
+    required : False
+    type : free_spend
+    tags :
+      [
+      "CCE 3rd Coast Donation",
+      "Vendor w/o default Tag",
+      "Tech",
+      "No Vendor Found",
+      "Furniture"
+      ]
+  twenty_saving :
+    percentage : 20
+    required : True
+    type : savings
+    tags :
+      [
+      "Savings"
+      ]
+#different_rule :
+#  category1 :
+#    percentage : 
+#    tags :
+#      [
+#      ]
+#  
+#  category2 :
+#    percentage : 
+#    tags :
+#      [
+#      ]  
+#  
+#  category3 :
+#    percentage : 
+#    tags :
+#      [
+#      ]

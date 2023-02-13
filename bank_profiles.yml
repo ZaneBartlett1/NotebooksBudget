@@ -1,0 +1,63 @@
+us_bank :
+  first_data_row : 1
+  bank_name : 'US Bank'
+  flip_values : False
+  columns :
+    date :
+      index : 0
+      name : 'Date'
+      date_format : '%Y-%m-%d'
+    transaction :
+      index : 1
+      name : 'Transaction'
+    name :
+      index : 2
+      name : 'Name'
+    memo :
+      index : 3
+      name : 'Memo'
+    amount :
+      index : 4
+      name : 'Amount'
+frost :
+  bank_name : 'Frost Bank'
+  first_data_row : 1
+  flip_values : False
+  columns :
+    date :
+      index : 2
+      name : 'Transaction Date'
+      date_format : '%m/%d/%Y'
+    transaction :
+      index : 3
+      name : 'Type'
+    name :
+      index : 4
+      name : 'Description'
+    memo :
+      index : 5
+      name : 'Memo'
+    amount :
+      index : 6
+      name : 'Amount'
+apple :
+  bank_name : 'Apple Card'
+  first_data_row : 1
+  flip_values : True
+  columns :
+    date :
+      index : 0
+      name : 'Transaction Date'
+      date_format : '%m/%d/%Y'
+    transaction :
+      index : 5
+      name : 'Type'
+    name :
+      index : 2
+      name : 'Description'
+    memo :
+      index : 7
+      name : 'Purchased By'
+    amount :
+      index : 6
+      name : 'Amount (USD)'

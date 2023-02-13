@@ -1,0 +1,195 @@
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^AMZ|^AMAZ|^Amaz|AMZN|AMAZON.COM
+  Tag: Vendor w/o default Tag
+  UUID: 8d1c2eb6-d85c-4795-83ca-b7acd4aae72d
+  Vendor: Amazon
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^COSTCO
+  Tag: Eating for sustenance
+  UUID: ea3a100a-dfb5-4927-b590-e4de99dd5fa2
+  Vendor: Costco
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^TOM THUMB
+  Tag: Eating for sustenance
+  UUID: 8cf6c1cf-7854-4fae-9d2d-ece57c0c6e84
+  Vendor: Tom Thumb
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^UBER
+  Tag: Vendor w/o default Tag
+  UUID: abed4d81-5150-4627-8c87-0ae6954217a3
+  Vendor: Uber
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^BANG
+  Tag: Eating for pleasure
+  UUID: 6755cf4e-412f-4534-8671-4ffb5f80ee65
+  Vendor: Bankok Dee
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^HAWAIIAN
+  Tag: Eating for pleasure
+  UUID: 5fa12264-f2e3-4710-b2c9-5645537fd831
+  Vendor: Hawaiian Bros
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^TST
+  Tag: Eating for pleasure
+  UUID: e2bddbbb-47da-4db1-abca-eefbf5055e5e
+  Vendor: TST Pattern
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^TACO
+  Tag: Eating for pleasure
+  UUID: 8ce27704-ad03-4839-8fdf-8463320a3edb
+  Vendor: Taco Deli
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^NANDOS
+  Tag: Eating for pleasure
+  UUID: 2f3bcb1c-c4b3-4256-8dee-627dbbbb9754
+  Vendor: Nandos
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^WHATABURG
+  Tag: Eating for pleasure
+  UUID: 45137629-7d03-4ce4-91e7-5926069f3332
+  Vendor: Whataburger
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^LITO
+  Tag: Eating for pleasure
+  UUID: e7e5ccb3-0f5a-431d-809c-63ab09208a84
+  Vendor: Lito's Kitchen
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^SQ *
+  Tag: Eating for pleasure
+  UUID: bb437604-210a-41da-a309-42a48d654879
+  Vendor: SQ Pattern
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^LITTLE CAESARS
+  Tag: Eating for pleasure
+  UUID: 2e752d39-d214-4fb3-90cf-bd6709255fd9
+  Vendor: Little Caesars
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^SCOOTER'S COFFEE|SCOOTERS COFFEE
+  Tag: Eating for pleasure
+  UUID: d09ef768-bc0e-4ab8-987b-3ff1c9cdf237
+  Vendor: Scooter's Coffee
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^CIVIL POUR
+  Tag: Eating for pleasure
+  UUID: 1e3f8228-60fc-457f-b28c-cada414d5579
+  Vendor: Civil Pour
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^THE BLUE
+  Tag: Eating for pleasure
+  UUID: 9ecc0710-2c83-43c7-870c-dd4e0cd19587
+  Vendor: The Blue Rat Thai Kitchen
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^DOS BANDERAS
+  Tag: Eating for pleasure
+  UUID: 092c4b52-ccde-48b5-9e43-de9fc6e3e15a
+  Vendor: Dos Banderas
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^VELVET TACO
+  Tag: Eating for pleasure
+  UUID: 7771c492-86f7-4ba3-9f76-ed39dcc8be8e
+  Vendor: Velvet Taco
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^CVS
+  Tag: Vendor w/o default Tag
+  UUID: 81e07456-72a3-4bb3-9a6b-3a283255186d
+  Vendor: CVS
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: Aplos|402-935-7733
+  Tag: CCE 3rd Coast Donation
+  UUID: 4631f868-116a-483c-9ff7-85a6f3809b88
+  Vendor: Aplos
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^CSC
+  Tag: Laundry
+  UUID: ecf39c27-6f14-4abe-ba1d-89f0a3efc0af
+  Vendor: CSC Laundry
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^Netflix
+  Tag: Vendor w/o default Tag
+  UUID: ed936779-f2e6-4bb9-b042-72cd2f56495c
+  Vendor: Netflix
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^TOAST
+  Tag: Internet
+  UUID: e9c1ac32-eaa0-4c20-9078-f0aec1b93bd3
+  Vendor: Toast Net
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^RXBAR
+  Tag: Eating for sustenance
+  UUID: aeb890b1-bb8f-45b7-88f2-018bc618fa90
+  Vendor: RXBar
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^TING
+  Tag: Phone
+  UUID: 088e15e5-f182-4597-a6f7-b37a57e7516a
+  Vendor: Ting
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ApartmentPlace
+  Tag: Rent
+  UUID: f576d339-c73c-4a27-b13a-e544ce59ee6c
+  Vendor: Seville
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: CASH APP
+  Tag: Vendor w/o default Tag
+  UUID: 96018729-421c-47a3-b93e-4090f433e76c
+  Vendor: Cash App
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^ATM
+  Tag: Vendor w/o default Tag
+  UUID: 40d7a682-4a4d-4f59-ac8d-7eca26a50781
+  Vendor: Atm Stuff
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^ZELLE
+  Tag: Vendor w/o default Tag
+  UUID: f392d104-6c72-4512-a00b-39b1bf3f01d2
+  Vendor: Zelle
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^GEICO
+  Tag: Car Insurance
+  UUID: 80a012a4-10e2-41e0-b674-23638b8a2fd4
+  Vendor: Geico
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: ^OCULUS
+  Tag: Vendor w/o default Tag
+  UUID: ab1b45a7-101d-4ef9-9305-8449fdb40905
+  Vendor: Facebook
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: $-
+  Tag: Vendor w/o default Tag
+  UUID: eb853948-df6e-4c57-b68d-c8aa1efb705a
+  Vendor: Jacob Green
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: $-
+  Tag: Vendor w/o default Tag
+  UUID: 16b007de-3ab3-4b6e-aef8-2fe1c56e9c86
+  Vendor: Gary's Insurance
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: THANK YOU|CREDIT CARD 1234
+  Tag: Internal Transfer
+  UUID: aefb5705-12a1-4e93-9be4-3b2cc60f0189
+  Vendor: Internal Transfer
+- Initialized: '2022-12-04T18:57:18.384689'
+  Pattern: WITHDRAWAL 9876
+  Tag: Savings
+  UUID: 810b814e-22c9-4d68-bba4-c2620b3aff10
+  Vendor: Savings to 9876 acct
+- Initialized: '2022-12-08T23:42:02.966076'
+  Pattern: ^PCLOUD
+  Tag: Tech
+  UUID: 4d81e34d-97f6-450c-8d3b-69a0ba89ac98
+  Vendor: Pcloud
+- Initialized: '2022-12-11T02:27:15.440974'
+  Pattern: ADP
+  Tag: Job Payment
+  UUID: c499309c-8623-4185-a4d9-db3dafb89bc6
+  Vendor: CCLIT Payment
+- Initialized: '2022-12-29T19:34:44.261168'
+  Pattern: NATIONAL OFFICE LIQUID PHOENIX
+  Tag: Furniture
+  UUID: d565f44b-e595-4b57-941b-2e0ead23b930
+  Vendor: National Office Interiors and Liquidators
+- Initialized: '2022-12-29T20:50:42.752457'
+  Pattern: FAVOR
+  Tag: Eating for pleasure
+  UUID: dc1d2053-b1fa-415d-9095-124e9ac67054
+  Vendor: Favor
