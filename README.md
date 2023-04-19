@@ -1,28 +1,48 @@
 # Budgeting
 
-## Table of Contents
-- [What is this?](#what-is-this)
-- [Features](#features)
-  - [Concatenate files from multiple accounts](#concatenate-files-from-multiple-accounts)
-  - [Checks to see if new csvs have been added to save time loading](#checks-to-see-if-new-csvs-have-been-added-to-save-time-loading)
-  - [Define your bank's csv profile, so that any bank should work](#define-your-banks-csv-profile-so-that-any-bank-should-work)
-  - [Identify and automatically remove duplicate expenses](#identify-and-automatically-remove-duplicate-expenses)
-  - [Use regex patterns to match vendors and assign a tag to each vendor](#use-regex-patterns-to-match-vendors-and-assign-a-tag-to-each-vendor)
-  - [create budget with yaml files and use tags to group vendors in categories](#create-budget-with-yaml-files-and-use-tags-to-group-vendors-in-categories)
-  - [Checks are automatically run against budgets](#checks-are-automatically-run-against-budgets)
-  - [Premade graphs for understanding your spending](#premade-graphs-for-understanding-your-spending)
-  - [Add vendors, and update them to match if they rebrand](#add-vendors-and-update-them-to-match-if-they-rebrand)
-  - [Split transactions to handle situations like buying from Amazon but wanting the expense to go to multiple tags](#split-transactions-to-handle-situations-like-buying-from-amazon-but-wanting-the-expense-to-go-to-multiple-tags)
-- [Why make this?](#why-make-this)
-- [Setting up](#setting-up)
-- [Using it](#using-it)
-- [Some Notes](#some-notes)
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#about-the-project">About the project</a></li>
+    <li>
+      <a href="#features">Features</a>
+      <ul>
+        <li><a href="#generate-fake-data-to-test">Generate fake data to test</a></li>
+        <li><a href="#concatenate-files-from-multiple-accounts">Concatenate files from multiple accounts</a></li>
+        <li><a href="#checks-to-see-if-new-csvs-have-been-added-to-save-time-loading">Checks to see if new csvs have been added to save time loading</a></li>
+        <li><a href="#define-your-banks-csv-profile-so-that-any-bank-should-work">Define your bank's csv profile, so that any bank should work</a></li>
+        <li><a href="#identify-and-automatically-remove-duplicate-expenses">Identify and automatically remove duplicate expenses</a></li>
+        <li><a href="#use-regex-patterns-to-match-vendors-and-assign-a-tag-to-each-vendor">Use regex patterns to match vendors and assign a tag to each vendor</a></li>
+        <li><a href="#create-budget-with-yaml-files-and-use-tags-to-group-vendors-in-categories">Create budget with yaml files and use tags to group vendors in categories</a></li>
+        <li><a href="#checks-are-automatically-run-against-budgets">Checks are automatically run against budgets</a></li>
+        <li><a href="#premade-graphs-for-understanding-your-spending">Premade graphs for understanding your spending</a></li>
+        <li><a href="#add-vendors-and-update-them-to-match-if-they-rebrand">Add vendors, and update them to match if they rebrand</a></li>
+        <li><a href="#split-transactions-to-handle-situations-like-buying-from-amazon-but-wanting-the-expense-to-go-to-multiple-tags">Split transactions to handle situations like buying from Amazon but wanting the expense to go to multiple tags</a></li>
+      </ul>
+    </li>
+    <li><a href="#why-make-this">Why make this?</a></li>
+    <li><a href="#setting-up">Setting up</a></li>
+    <li><a href="#using-it">Using it</a></li>
+    <li><a href="#some-notes">Some Notes</a></li>
+  </ol>
+</details>
 
 
-## What is this?
-This is an incredibly simple budget app for tracking budgets set over usually a month. The intent is to be able to drop files into a folder, concanate those files, identify vendors, apply tags and categories, create budgets, and then produce a few basic charts from that. This is a good middle ground between using LibreOffice Calc and GNUCash. To be clear though the scope is this is monthly/quarterly budgeting. This isn't something that I would rely on connecting and managing multiple accounts and trying to track different savings in those accounts. This is just to show if you're on track to meet your monthly goals to allocated categories. This works best if you put most of your expenses on one or two cards.
+
+## About the project
+
+This is a budgeting application designed for effective tracking and management of monthly or quarterly budgets. The application's key features include vendor identification, tagging and categorization, budget creation, and the auto-generation of charts for visual representation.
+
+Serving as a practical alternative to LibreOffice Calc and GNUCash, this budgeting tool focuses primarily on assisting users in achieving their financial goals within specific spending categories. For optimal results, I recommend only using this tool withonly one or two primary expense accounts.
 
 ## Features
+
+### Generate fake data to test
+![image](https://user-images.githubusercontent.com/85081861/233206295-b7a1c494-a894-4f37-b754-499d88512c10.png)
+![image](https://user-images.githubusercontent.com/85081861/233206436-88e70919-e632-4115-b895-f16106fa88bf.png)
+![image](https://user-images.githubusercontent.com/85081861/233206570-ed9a922b-9d92-480f-a958-d26492ac4aa3.png)
+
+
 ### Concatenate files from multiple accounts
 
 ![image](https://user-images.githubusercontent.com/85081861/208593581-258006b9-aa19-44d0-a632-90fda28dad0a.png)
@@ -104,3 +124,4 @@ Generally the workflows are what you'd be using. There are three workflows at th
 * This app will be most comfortable for extending if you're familar with Regex, SQLAlchemy, Pandas, Jupyterlab, dictionaries, and Plotly. Otherwise doing the basics should still work, but trying to do more than that might hit a wall pretty quickly.
 * I do intend to use this as my budgeting application so hopefully this will continue to be developed!
 * This *does not* work well for tracking across multiple accounts. Again, the idea is to track a budget over the course of a month or quarter, not how that saved across multiple accounts and how those accounts are growing. If this is too simple, consider checking out GNUCash!
+* I used the [black formatter](https://pypi.org/project/black/)
