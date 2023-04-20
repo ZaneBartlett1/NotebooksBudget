@@ -31,9 +31,9 @@
 
 ## About the project
 
-This is a budgeting application designed for effective tracking and management of monthly or quarterly budgets. The application's key features include vendor identification, tagging and categorization, budget creation, and the auto-generation of charts for visual representation.
+This is a budgeting app designed for tracking and management of monthly or quarterly budgets. Features include vendor identification, tagging and categorization, budget creation, and the auto-generation of charts for visual representation.
 
-Serving as a practical alternative to LibreOffice Calc and GNUCash, this budgeting tool focuses primarily on assisting users in achieving their financial goals within specific spending categories. For optimal results, I recommend only using this tool withonly one or two primary expense accounts.
+This is a good medium between using something a spreadsheet tool like google sheets and GNUCash, this budgeting tool focuses primarily on assisting users in achieving their financial goals within specific spending categories. For optimal results, I recommend only using this tool withonly one or two primary expense accounts.
 
 ## Features
 
