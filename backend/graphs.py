@@ -1,26 +1,81 @@
-from budget import *
+import calendar
+import yaml
+from typing import Optional
 
 import plotly.express as px
+import pandas as pd
+from sqlalchemy import select
 
-with engine.connect() as conn:
+from backend import database as db
+from backend import queries
+
+
+def calculate_sum(dictionary, salary):
+    sum = 0
+    for key in dictionary:
+        if dictionary[key]["required"] == True:
+            sum += dictionary[key]["percentage"] * salary / 100
+    return sum
+
+
+def category_from_tag(budget_plan: dict, row) -> str:
+    """
+    Used for graphs to apply category based on the budget plan provided and tag already on transaction
+    """
+    # create dictionary that maps categories to their tags
+    categories_tag_dict = {}
+
+    for category in budget_plan:
+        tags = budget_plan[category]["tags"]
+        if tags:
+            categories_tag_dict[category] = tags
+
+    # iterate over dictionary and return category if transaction tag matches a tag in the budget plan
+    for key, values in categories_tag_dict.items():
+        for tag in values:
+            if tag == row["Tag"]:
+                return key
+    # return "Failed to categorize" if transaction cannot be categorized
+    else:
+        return "Failed to categorize"
+    
+
+def category_max_spend(budget_plan: dict, Salary: int) -> dict | None:
+    """
+    Given a budget plan and Salary, return a dictonary with the category name, the percentage allocated for that category, and the max spend for that category
+    """
+    categories_max_spend_dict = {}
+
+    for category in budget_plan:
+        max_spend_percentage = budget_plan[category]["percentage"]
+        if max_spend_percentage:
+            categories_max_spend_dict[category] = {
+                "percentage": max_spend_percentage,
+                "max spend": Salary / (100 / max_spend_percentage),
+            }
+
+    return categories_max_spend_dict
+
+
+with db.engine.connect() as conn:
     # Pull Transactions table
-    pandas_query = select(Transactions)
+    pandas_query = select(db.Transactions)
     tran_table = pd.read_sql(pandas_query, conn)
     # This part looks for transactions that have children transactions, removes them, and the concatenates the children rows on
     tran_table = tran_table[tran_table["Has Child"] != None]
-    tran_table["Tag"] = tran_table["VendorUUID"].apply(uuid_to_tag)
+    tran_table["Tag"] = tran_table["VendorUUID"].apply(queries.uuid_to_tag)
     columns = [
-        ChildTransactions.id,
-        ChildTransactions.Date,
-        ChildTransactions.Transaction,
-        ChildTransactions.Name,
-        ChildTransactions.Memo,
-        ChildTransactions.Amount,
-        ChildTransactions.VendorUUID,
+        db.ChildTransactions.id,
+        db.ChildTransactions.Date,
+        db.ChildTransactions.Transaction,
+        db.ChildTransactions.Name,
+        db.ChildTransactions.Memo,
+        db.ChildTransactions.Amount,
+        db.ChildTransactions.VendorUUID,
     ]
-    child_query = select(columns).select_from(ChildTransactions)
-    child_table = pd.read_sql(child_query, engine)
-    child_table["Tag"] = child_table["VendorUUID"].apply(uuid_to_tag)
+    child_query = select(columns).select_from(db.ChildTransactions)
+    child_table = pd.read_sql(child_query, db.engine)
+    child_table["Tag"] = child_table["VendorUUID"].apply(queries.uuid_to_tag)
     tran_table = pd.concat([tran_table, child_table], ignore_index=True)
     # Add columns for time
     tran_table["Date"] = pd.to_datetime(tran_table["Date"], infer_datetime_format=True)
@@ -29,7 +84,7 @@ with engine.connect() as conn:
     tran_table["Quarter"] = tran_table["Date"].dt.to_period("Q").dt.strftime("%Y-%q")
     
     # Pull Vendors, also do vendor_list in a cell in the notebook to get a list of vendors
-    vendor_query = select(Vendors)
+    vendor_query = select(db.Vendors)
     vendor_list = pd.read_sql(vendor_query, conn).sort_values(by="Vendor")
 
     # Do tag_list in a cell in the notebook to get a list of tags
@@ -99,7 +154,7 @@ def graph_two(
         print("The dataframe is empty. Nothing to populate chart with")
         return None
     
-    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(uuid_to_vendor)
+    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(queries.uuid_to_vendor)
         
     # Group the transactions by the specified group, tag, and vendor and sum their amounts
     expense_table_vendors = new_tran_table.groupby(
@@ -107,7 +162,7 @@ def graph_two(
     ).Amount.sum()
     
     if invert:
-        expense_table_tags["Amount"] *= -1
+        expense_table_vendors["Amount"] *= -1
     
     # Create a bar graph of the grouped transactions
     expense_graph = px.bar(
@@ -239,7 +294,7 @@ def graph_four(
         print("The dataframe is empty. Nothing to populate chart with")
         return None
     
-    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(uuid_to_vendor)
+    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(queries.uuid_to_vendor)
         
     # Group the transactions by the specified group, tag, and vendor and sum their amounts
     expense_table_vendors = new_tran_table.groupby(
@@ -287,7 +342,7 @@ def graph_five(
         print("The dataframe is empty. Nothing to populate chart with")
         return None
     
-    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(uuid_to_vendor)    
+    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(queries.uuid_to_vendor)
 
     # Invert the amount if the invert option is set to True
     if invert:
@@ -296,7 +351,7 @@ def graph_five(
     # Group the new dataframe
     expense_table_vendors = new_tran_table.groupby(
         ["Vendor", "Amount", "Name"], as_index=False
-    ).Amount.sum().sort_values(by="Amount", ascending=False)    
+    ).Amount.sum().sort_values(by="Amount", ascending=False)
     
     # Create a bar graph using the new dataframe
     expense_graph = px.bar(
@@ -337,7 +392,7 @@ def pt_one(filter_tag: str, filter_month: Optional[int] = None, head: Optional[i
         return None
     
     # Use the `uuid_to_vendor()` function to convert the VendorUUID column to the Vendor column
-    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(uuid_to_vendor)
+    new_tran_table["Vendor"] = new_tran_table["VendorUUID"].apply(queries.uuid_to_vendor)
     
     newer_tran_table = pd.pivot_table(new_tran_table, index=["Vendor", "Name", "id", "Date"])
     return newer_tran_table.sort_values(by="Amount").head(head)

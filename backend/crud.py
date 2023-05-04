@@ -5,9 +5,7 @@ import datetime
 import time
 import os
 import uuid
-import sys
 import random
-import calendar
 from pathlib import Path
 from typing import Optional
 from typing import List
@@ -19,96 +17,17 @@ from sqlalchemy import exc
 from sqlalchemy import select
 from sqlalchemy import insert
 from sqlalchemy import update
-from sqlalchemy import Column
-from sqlalchemy import String
-from sqlalchemy import Integer
-from sqlalchemy import Float
-from sqlalchemy import ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine.base import Engine
-from sqlalchemy.orm import sessionmaker
 import pandas as pd
 import yaml
 
+from backend import database as db
+from backend import queries
+from backend import checks
 
 folder_path = "./banking_csvs/"
-db_path = "budget.db"
 yml_file_path = "./vendors.yml"
-engine = create_engine("sqlite:///budget.db")
-Base = declarative_base()
-
-
-class Transactions(Base):
-    __tablename__ = "Transactions"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    Date = Column(String)
-    Transaction = Column(String)
-    Name = Column(String)
-    Memo = Column(String)
-    Amount = Column(Float)
-    VendorUUID = Column(String)
-    Has_Child = Column("Has Child", String)
-    Hash = Column(String, unique=True)
-
-
-class ChildTransactions(Base):
-    __tablename__ = "Child Transactions"
-
-    id = Column(Integer, primary_key=True)
-    Parent_id = Column(Integer, ForeignKey("Transactions.id"))
-    Date = Column(String)
-    Transaction = Column(String)
-    Name = Column(String)
-    Memo = Column(String)
-    Amount = Column(Float)
-    VendorUUID = Column(String)
-    Tag = Column(String)
-    Initialized = Column(String)
-    Description = Column(String)
-
-
-class BudgetTemplates(Base):
-    __tablename__ = "Budget Templates"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    Budget_Name = Column("Budget Name", String)
-    Buckets = Column(String, unique=True)
-    Percent = Column(Float)
-
-
-class BankTemplates(Base):
-    __tablename__ = "Bank Templates"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    Bank_Name = Column("Bank Name", String)
-    Row_Number = Column("Row Number", Integer)
-    Column_Name = Column("Column Name", String)
-    Match_To = Column("Match To", String)
-
-
-class Vendors(Base):
-    __tablename__ = "Vendors"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    Vendor = Column(String, unique=True)
-    Pattern = Column(String)
-    Tag = Column(String)
-    UUID = Column(String)
-    Initialized = Column(String)
-
-
-class ExpenseImports(Base):
-    __tablename__ = "Expense Imports"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    Filename = Column(String, unique=True)
-
-
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
+session = db.init_db()
 
 
 def is_bank(first_row: List[str], profile_columns: Dict) -> bool:
@@ -217,8 +136,8 @@ def import_transactions(
                 Memo = row[col_map["memo"]["index"]]
                 Amount = clean_money(row[col_map["amount"]["index"]], bank_profile)
                 Hash = hash_transaction(Date, Transaction, Name, Memo, Amount)
-                VendorUUID = vendorizer(Name)
-                row = insert(Transactions).values(
+                VendorUUID = queries.vendorizer(Name)
+                row = insert(db.Transactions).values(
                     Date=Date,
                     Transaction=Transaction,
                     Name=Name,
@@ -248,7 +167,7 @@ def import_new_expense_imports(file_path: str, engine: Engine) -> None:
     Imports the file names of new transaction imports from a bank.
     """
     name = file_path.rsplit("/", maxsplit=1)[-1]
-    expense_import = insert(ExpenseImports).values(Filename=name)
+    expense_import = insert(db.ExpenseImports).values(Filename=name)
     with engine.connect() as conn:
         conn.execute(expense_import)
         print(f"Added {name} to list of known files")
@@ -269,18 +188,18 @@ def make_children(
     """
     with engine.connect() as conn:
         # Check that the given rows satisfy the amount and tag checks
-        if (amount_check(rows, id)) and (tag_check(rows)) == True:
+        if (queries.amount_check(rows, id)) and (queries.tag_check(rows)) == True:
             # If they do, iterate over the rows
             for row in rows:
                 # Get the parent transaction's information
                 parent_query = (
                     select(
-                        Transactions.Date,
-                        Transactions.Transaction,
-                        Transactions.Name,
-                        Transactions.Memo,
+                        db.Transactions.Date,
+                        db.Transactions.Transaction,
+                        db.Transactions.Name,
+                        db.Transactions.Memo,
                     )
-                ).where(Transactions.id == id)
+                ).where(db.Transactions.id == id)
                 parent_columns = pd.read_sql(parent_query, conn)
                 parent_id = id
                 date = parent_columns["Date"].values[0]  # type: ignore
@@ -290,7 +209,7 @@ def make_children(
 
                 # Get the information for the current row
                 amount = row[0]
-                vendor_uuid = vendor_to_uuid(row[1])
+                vendor_uuid = queries.vendor_to_uuid(row[1])
                 tag = row[2]
                 desc = row[3]
 
@@ -298,7 +217,7 @@ def make_children(
                 current_time = datetime.datetime.now().isoformat()
 
                 # Insert the current row into the ChildTransactions table
-                row = insert(ChildTransactions).values(
+                row = insert(db.ChildTransactions).values(
                     Parent_id=parent_id,
                     Date=date,
                     Transaction=transaction,
@@ -321,72 +240,16 @@ def make_children(
                 else:
                     # If the query is successful, update the parent transaction to indicate that it has children
                     label_parent = (
-                        update(Transactions)
-                        .where(Transactions.id == id)
+                        update(db.Transactions)
+                        .where(db.Transactions.id == id)
                         .values(Has_Child="True")
                     )
                     conn.execute(label_parent)
         else:
             # If the checks fail, return the output of amount_check and tag_check
             print(
-                f"amount_check: {amount_check(rows, id)}, tag_check: {tag_check(rows)}"
+                f"amount_check: {queries.amount_check(rows, id)}, tag_check: {queries.tag_check(rows)}"
             )
-
-
-def amount_check(rows: list, id: int) -> bool | str:
-    """
-    Use this to make sure that when using the create children function,
-    the rows sum to the amount of the parent.
-    It uses the transaction ID to select the parent.
-    Return True if they do, or a string with an error message if they don't.
-    """
-    with engine.connect() as conn:
-        # Get the amount of the parent transaction
-        parent_query_amount = (select(Transactions.Amount)).where(Transactions.id == id)
-        parent_amount = pd.read_sql(parent_query_amount, conn)
-        absolute_parent_amount = float(parent_amount["Amount"].values[0])  # type: ignore
-
-        # Get the amounts of the child transactions from the given rows
-        child_list_amounts = [float(row[0]) for row in rows]
-
-        # Calculate the sum of the amounts of the child transactions
-        absolute_child_amount = float(sum(child_list_amounts))
-
-        # Calculate the difference between the parent transaction's amount and the sum of the child transactions' amounts
-        diff_amount = absolute_child_amount - absolute_parent_amount
-
-        # Check if the difference is zero
-        if diff_amount == 0:
-            # If it is, return True
-            return True
-        else:
-            # If it isn't, return an error message
-            return f"Amount doesn't add up. Absolute Parent Amount: {absolute_parent_amount}, Absolute Child Amount: {absolute_child_amount}"
-
-
-def tag_check(rows: list) -> bool | str:
-    """
-    Check that the tags used in the given rows are present in the official list of tags stored in the Vendors table.
-    Return True if they are, or a string with an error message if they aren't.
-    Used to make sure that when using the making children function you don't put in a tag that doesn't exist
-    """
-    with engine.connect() as conn:
-        # Get the official list of tags from the Vendors table
-        tags_query_tag = select(Vendors.Tag)
-        raw_tags_tag = pd.read_sql(tags_query_tag, conn)
-        tags_tag = raw_tags_tag["Tag"].to_list()
-
-        # Get the tags from the given rows
-        child_tags = [row[2] for row in rows]
-
-        # Check if each tag in the given rows is present in the official list of tags
-        for tag in child_tags:
-            if tag not in tags_tag:
-                # If not, return an error message
-                return f"One of these {child_tags} is not an official tag. Check spelling or add tag to official tag first"
-
-        # If all tags in the given rows are present in the official list of tags, return True
-        return True
 
 
 def hash_transaction(
@@ -440,13 +303,13 @@ def get_latest_export_paths(storage_folder_path: str) -> list:
     imported_files = []
 
     # Query the ExpenseImports table for the names of the files that have been imported
-    imported_files_query = select(ExpenseImports.Filename)
+    imported_files_query = select(db.ExpenseImports.Filename)
 
     # Create an empty list to store the paths of the new files
     new_file_paths = []
 
     # Connect to the database
-    with engine.connect() as conn:
+    with db.engine.connect() as conn:
         # Iterate over the query results
         for row in conn.execute(imported_files_query):
             # Add the name of each imported file to the imported_files list
@@ -463,44 +326,6 @@ def get_latest_export_paths(storage_folder_path: str) -> list:
 
     # Return the list of new file paths
     return new_file_paths
-
-
-def vendorizer(name: str) -> str:
-    """
-    Return the vendor UUID associated with the given expense name.
-    If no vendor is found, return "No Vendor Found".
-    This is used on import so that we can assign a vendor UUID based on what regex pattern we've assigned in the database
-    """
-    # Query the Vendors table for the vendor UUID and their corresponding patterns
-    vendor_query = select(Vendors.UUID, Vendors.Pattern)
-
-    # Connect to the database
-    with engine.connect() as conn:
-        # Fetch the results of the query as a list of tuples
-        updated_vendor_list = conn.execute(vendor_query).fetchall()
-
-        # Convert the list of tuples to a dictionary
-        dict_vendor_pattern = {}
-
-        # Iterate over the updated_vendor_list
-        for vendor in updated_vendor_list:
-            # Get the vendor UUID and pattern from the current element
-            vendor_uuid = vendor["UUID"]
-            vendor_pattern = vendor["Pattern"]
-
-            # Add the vendor UUID and pattern to the dictionary
-            dict_vendor_pattern[vendor_uuid] = {
-                "Pattern": vendor_pattern,
-            }
-
-        # Iterate over the dictionary
-        for vendor in dict_vendor_pattern:
-            # If the expense name matches the pattern of the current vendor, return the vendor UUID
-            if re.search(dict_vendor_pattern[vendor]["Pattern"], name):
-                return vendor
-
-        # If no vendor is found, return "No Vendor Found"
-        return "No Vendor Found"
 
 
 def add_vendor(
@@ -529,7 +354,7 @@ def add_vendor(
 
     # Declare the new_vendor variable outside the for loop
     new_vendor = None
-    
+
     # Counter to track what key we're on, so if there's a duplicate, we can hand back the name
     duplicate_vendor_key = -1
 
@@ -541,11 +366,11 @@ def add_vendor(
             # Iterate over the input vendors
             for vendor in vendors:
                 # Flip the counter to zero, start tracking what key we're on
-                duplicate_vendor_key += 1                
-                
-                # This is so we can do a print statement acknowledging if a vendor was truly added or one was rebranded    
+                duplicate_vendor_key += 1
+
+                # This is so we can do a print statement acknowledging if a vendor was truly added or one was rebranded
                 UUID_generated = False
-                
+
                 # Generate a UUID for the vendor if one is not provided
                 if "UUID" not in vendor:
                     vendor["UUID"] = str(uuid.uuid4())
@@ -558,11 +383,11 @@ def add_vendor(
                 vendor["Initialized"] = current_time
 
                 # Set the new vendor's information to new_vendor
-                new_vendor = insert(Vendors).values(**vendor)
+                new_vendor = insert(db.Vendors).values(**vendor)
 
                 # Execute the query to insert the new vendor
                 session.execute(new_vendor)
-                
+
                 if UUID_generated == False:
                     print(f"{vendor[0]['Vendor']} rebranded")
 
@@ -591,10 +416,10 @@ def add_vendor(
 
 def revendorizer(vendor: dict) -> None:
     # Update transactions with "No Vendor Found" with the new vendor's information
-    with engine.connect() as conn:
+    with db.engine.connect() as conn:
         # Find transactions with "No Vendor Found" as the vendor
-        no_vendor_found_transactions_query = select([Transactions]).where(
-            Transactions.VendorUUID == "No Vendor Found"
+        no_vendor_found_transactions_query = select([db.Transactions]).where(
+            db.Transactions.VendorUUID == "No Vendor Found"
         )
 
         no_vendor_found_transactions = conn.execute(
@@ -605,8 +430,8 @@ def revendorizer(vendor: dict) -> None:
         for transaction in no_vendor_found_transactions:
             if re.search(vendor["Pattern"], transaction["Name"]):
                 update_vendor_query = (
-                    update(Transactions)
-                    .where(Transactions.id == transaction["id"])
+                    update(db.Transactions)
+                    .where(db.Transactions.id == transaction["id"])
                     .values(VendorUUID=vendor["UUID"])
                 )
                 conn.execute(update_vendor_query)
@@ -614,11 +439,11 @@ def revendorizer(vendor: dict) -> None:
 
 def update_vendor(
     engine: Engine,
-    session: Session,  # type: ignore
+    session: session,
     yml_file_path: str,
     UUID: str,
     new_vendor_name: Optional[str] = None,
-    new_pattern: Optional[str] = None
+    new_pattern: Optional[str] = None,
 ) -> None:
     """
     Updates the vendor name and/or pattern for the vendor with the given ID in the database.
@@ -629,7 +454,7 @@ def update_vendor(
     with session.begin():
         with engine.connect() as conn:
             # Query for the UUID of the vendor with the given ID
-            query = select([Vendors.UUID]).where(Vendors.UUID == UUID)
+            query = select([db.Vendors.UUID]).where(db.Vendors.UUID == UUID)
             result = conn.execute(query).fetchone()
             if result:
                 UUID = result[0]
@@ -638,7 +463,7 @@ def update_vendor(
                 return
 
             # Build the update query
-            update_query = update(Vendors).where(Vendors.UUID == UUID)
+            update_query = update(db.Vendors).where(db.Vendors.UUID == UUID)
             if new_vendor_name:
                 # Update the vendor name if provided
                 update_query = update_query.values(Vendor=new_vendor_name)
@@ -674,276 +499,6 @@ def update_vendor(
 
             # If both operations are successful, commit the transaction
             session.commit()
-
-
-def uuid_to_tag(UUID: str) -> str:
-    """
-    Using this since we don't store vendor names directly on the transaction table.
-    So when we need to get the most recent vendor name, we do it based on the UUID.
-    This function is just a basic lookup and return
-    """
-    # Check if the UUID is "No Vendor Found"
-    if UUID == "No Vendor Found":
-        # If it is, simply return "No Vendor Found"
-        return "No Vendor Found"
-
-    with engine.connect() as conn:
-        uuid_to_vendor_query = (select(Vendors.Tag, Vendors.Initialized)).where(
-            Vendors.UUID == UUID
-        )
-        result = conn.execute(uuid_to_vendor_query).fetchall()
-
-        # Pick the most recently added vendor
-        most_recent_vendor = None
-        most_recent_timestamp = None
-        for vendor in result:
-            # Check if the current vendor has a more recent timestamp than the previous ones
-            if not most_recent_timestamp or vendor.Initialized > most_recent_timestamp:
-                most_recent_vendor = vendor
-                most_recent_timestamp = vendor.Initialized
-
-        # Check if the most recent vendor was found
-        if most_recent_vendor:
-            return most_recent_vendor.Tag
-        else:
-            return "No Vendor Found"
-
-
-def uuid_to_vendor(UUID: str) -> str:
-    """
-    Using this since we don't store vendor names directly on the transaction table.
-    So when we need to get the most recent vendor name, we do it based on the UUID.
-    This function is just a basic lookup and return
-    """
-    # Check if the UUID is "No Vendor Found"
-    if UUID == "No Vendor Found":
-        # If it is, simply return "No Vendor Found"
-        return "No Vendor Found"
-
-    with engine.connect() as conn:
-        uuid_to_vendor_query = (select(Vendors.Vendor, Vendors.Initialized)).where(
-            Vendors.UUID == UUID
-        )
-        result = conn.execute(uuid_to_vendor_query).fetchall()
-
-        # Pick the most recently added vendor
-        most_recent_vendor = None
-        most_recent_timestamp = None
-        for vendor in result:
-            # Check if the current vendor has a more recent timestamp than the previous ones
-            if not most_recent_timestamp or vendor.Initialized > most_recent_timestamp:
-                most_recent_vendor = vendor
-                most_recent_timestamp = vendor.Initialized
-
-        # Check if the most recent vendor was found
-        if most_recent_vendor:
-            return most_recent_vendor.Vendor
-        else:
-            return "No Vendor Found"
-
-
-def vendor_to_uuid(vendor: str) -> str:
-    """
-    Useful if you need to do something like rebrand a vendor, since you need to give the UUID. Simple query.
-    """
-    with engine.connect() as conn:
-        vendor_to_uuid_query = (select(Vendors.UUID)).where(Vendors.Vendor == vendor)
-        result = conn.execute(vendor_to_uuid_query).fetchone()
-        if not result:
-            return "Vendor did not match to any in database"
-        else:
-            return result
-
-
-def get_tags_for_budget_plan(budget_plan: dict) -> list:
-    """
-    Returns all tags for a specified budget plan.
-    There's a check that runs which uses this function to make sure there's no duplicates
-    """
-    # Keep track of category to vendor map
-    categories = []
-
-    # Give a flatter mapping of category to tags
-    for category in budget_plan:
-        tags = budget_plan[category]["tags"]
-        if tags:
-            categories.extend(tags)
-
-    return categories
-
-
-def get_budget_plan_tag_mapping(budget_plans: dict) -> dict:
-    """
-    Get a dictionary of all tags, regardless of category, for each budget plan
-
-    Shaped like:
-    {'plan' : [tag_1, tag_2, ..., tag_n]}
-    This is used in a check to make sure there's no duplicates
-    """
-    plan_to_tag_map = {}
-    for budget_plan in budget_plans:
-        budget_plan_dict = budget_plans[budget_plan]
-
-        # e.g. plan_to_tag_map['50/30/20_rule'] = {fifty: {...}, thirty: {...}
-        tags_for_budget_plan = get_tags_for_budget_plan(budget_plan_dict)
-        plan_to_tag_map[budget_plan] = tags_for_budget_plan
-
-    return plan_to_tag_map
-
-
-def check_no_duplicates(budget_plans: dict):
-    """Used to check that there is no duplicate tags under any category for the budget plan"""
-    # Get mapping of budget plans to all tags, regardless of category
-    plan_to_tags = get_budget_plan_tag_mapping(budget_plans)
-
-    failures = []
-    pass_check = True
-
-    for plan in plan_to_tags:
-        # Get the tag list for this plan
-        tag_list = plan_to_tags[plan]
-        if len(tag_list) != len(set(tag_list)):
-            failures.append(plan)
-            pass_check = False
-
-    return pass_check, failures
-
-
-def check_tag_list_match(budget_plans: dict):
-    """
-    Check that the list of tags used in the budget plans matches the list of tags in the database.
-    Returns a tuple containing a boolean indicating if the check passed and a list of plans that failed the check.
-    """
-    # Get a dictionary mapping budget plans to their corresponding tags
-    plan_to_tags = get_budget_plan_tag_mapping(budget_plans)
-
-    failures = {}
-    db_tag_list_unique = []
-
-    with engine.connect() as conn:
-        # Query the Vendors table for the list of tags
-        tag_query = select(Vendors.Tag)
-        db_tag_list = set(conn.execute(tag_query).fetchall())
-
-        # Iterate over the list of tags and add each tag to the list of unique tags
-        for tag in db_tag_list:
-            db_tag_list_unique.append(tag[0])
-
-    # Initialize a variable to track if the check passed
-    pass_check = True
-
-    # Iterate over the dictionary of plan to tags mappings
-    for plan in plan_to_tags:
-        # Get the tag list for this plan
-        tag_list = plan_to_tags[plan]
-        # Transactions that couldn't find a vendor, will have "No Vendor Found" marked on them
-        # remove this since the Vendor table doesn't (and shouldn't) have that as an entry
-        try:
-            tag_list.remove("No Vendor Found")
-        except ValueError:
-            pass
-        # Check if the tag list for this plan is a unique, sorted list of all the tags in the database
-        if sorted(tag_list) != sorted(list(set(db_tag_list_unique))):
-            # If the check failed, add the plan to the list of failures and set pass_check to False
-            failures[plan] = set(tag_list) ^ set(db_tag_list_unique)
-            pass_check = False
-
-    # Return a tuple containing a boolean indicating if the check passed and a list of plans that failed the check
-    return pass_check, failures
-
-
-def check_percentages_add_to_100(budget_plans: dict) -> tuple:
-    """
-    Run during main to check that each budget plan inside the budget plans yaml file have categories that add to 100%
-    """
-    # initialize variables
-    pass_check = True
-    failures = []
-
-    # iterate over budget plans
-    for plan in budget_plans:
-        percent = 0
-        budget_plan = budget_plans[plan]
-
-        # iterate over categories in budget plan
-        for category_name in budget_plan:
-            percent += budget_plan[category_name]["percentage"]
-
-        # if percentages don't add up to 100, set pass_check to False and append plan to failures list
-        if percent != 100:
-            pass_check = False
-            failures.append(plan)
-
-    # return tuple of pass_check and failures
-    return pass_check, failures
-
-
-def check_budget_plans(budget_plans: dict, check_list: list) -> dict:
-    """
-    Function used to apply other check functions run during main. These make sure several different things look good
-    """
-    # Initialize an empty dictionary to store the results of the check functions
-    check_results = {}
-
-    print("Below are checks that are run against your budget plan")
-
-    # Iterate over the check_list
-    for check in check_list:
-        # Call the function in the check tuple with budget_plans as an argument and store the result in result
-        result, fail_dict = check[0](budget_plans)
-        # Get the rule description from the check tuple
-        rule = check[1]
-        # If the result of the check function is True, print a message indicating that all budget plans passed the check
-        if result:
-            print(f"{rule}: All PASSED")
-        # If the result of the check function is False, print a message indicating that some budget plans failed the check
-        # and add the fail_list to the check_results dictionary using the rule as the key
-        else:
-            print(f"{rule}: FAILING:", end=" ")
-            fail_list_str = [f"{k}: {v}" for k, v in fail_dict.items()]
-            print(", ".join(fail_list_str))
-
-    # Return the check_results dictionary
-    return check_results
-
-
-def category_from_tag(budget_plan: dict, row) -> str:
-    """
-    Used for graphs to apply category based on the budget plan provided and tag already on transaction
-    """
-    # create dictionary that maps categories to their tags
-    categories_tag_dict = {}
-
-    for category in budget_plan:
-        tags = budget_plan[category]["tags"]
-        if tags:
-            categories_tag_dict[category] = tags
-
-    # iterate over dictionary and return category if transaction tag matches a tag in the budget plan
-    for key, values in categories_tag_dict.items():
-        for tag in values:
-            if tag == row["Tag"]:
-                return key
-    # return "Failed to categorize" if transaction cannot be categorized
-    else:
-        return "Failed to categorize"
-
-
-def category_max_spend(budget_plan: dict, Salary: int) -> dict | None:
-    """
-    Given a budget plan and Salary, return a dictonary with the category name, the percentage allocated for that category, and the max spend for that category
-    """
-    categories_max_spend_dict = {}
-
-    for category in budget_plan:
-        max_spend_percentage = budget_plan[category]["percentage"]
-        if max_spend_percentage:
-            categories_max_spend_dict[category] = {
-                "percentage": max_spend_percentage,
-                "max spend": Salary / (100 / max_spend_percentage),
-            }
-
-    return categories_max_spend_dict
 
 
 def add_vendor_yaml_file(yml_file_path: str, vendors: List[Dict[str, str]]):
@@ -1019,20 +574,12 @@ def update_vendor_yaml_file(
 
 def load_vendors(vendors) -> None:
     """Initializes a database with patterns to match expenses to vendors"""
-    with engine.connect() as conn:
+    with db.engine.connect() as conn:
         try:
-            conn.execute(insert(Vendors), vendors)
+            conn.execute(insert(db.Vendors), vendors)
         except exc.IntegrityError:
             session.rollback()
             print("Vendors are loaded")
-
-
-def calculate_sum(dictionary, salary):
-    sum = 0
-    for key in dictionary:
-        if dictionary[key]["required"] == True:
-            sum += dictionary[key]["percentage"] * salary / 100
-    return sum
 
 
 def generate_example_data(
@@ -1106,7 +653,6 @@ def generate_example_data(
 
 
 def main():
-
     folder_path = "./banking_csvs/"
     engine = create_engine("sqlite:///budget.db")
 
@@ -1126,9 +672,9 @@ def main():
     import_transactions(folder_path, bank_profiles, engine)
 
     check_list = [
-        (check_no_duplicates, "Has no duplicates"),
-        (check_percentages_add_to_100, "Category percents add to 100"),
-        (check_tag_list_match, "All avaliable tags used"),
+        (checks.check_no_duplicates, "Has no duplicates"),
+        (checks.check_percentages_add_to_100, "Category percents add to 100"),
+        (checks.check_tag_list_match, "All avaliable tags used"),
     ]
 
-    check_budget_plans(budget_plans, check_list)
+    checks.check_budget_plans(budget_plans, check_list)
