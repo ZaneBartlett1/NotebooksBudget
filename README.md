@@ -38,10 +38,8 @@ This is a good medium between using something a spreadsheet tool like google she
 ## Features
 
 ### Generate fake data to test
-![image](https://user-images.githubusercontent.com/85081861/233206295-b7a1c494-a894-4f37-b754-499d88512c10.png)
-![image](https://user-images.githubusercontent.com/85081861/233206436-88e70919-e632-4115-b895-f16106fa88bf.png)
-![image](https://user-images.githubusercontent.com/85081861/233206570-ed9a922b-9d92-480f-a958-d26492ac4aa3.png)
 
+[Screencast from 05-17-2023 01:41:47 PM.webm](https://github.com/ZaneBartlett1/NotebooksBudget/assets/85081861/8339dd0a-6988-49f7-9917-dd4a6fb50248)
 
 ### Concatenate files from multiple accounts
 
